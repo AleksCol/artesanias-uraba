@@ -103,10 +103,17 @@ WSGI_APPLICATION = "config.wsgi.application"
 # con pooler; en local y para migraciones conviene la URL directa (sin
 # "-pooler"), porque PgBouncer en modo transacción no soporta bien las
 # sentencias preparadas ni los cursores del lado del servidor.
+# Con USAR_BASE_DIRECTA=1 se usa DIRECT_DATABASE_URL en vez de DATABASE_URL,
+# para no tener que editar el .env cada vez que se corre una migración:
+#   PowerShell:  $env:USAR_BASE_DIRECTA=1; python manage.py migrate
+USAR_BASE_DIRECTA = variable_booleana("USAR_BASE_DIRECTA")
+
 DATABASES = {
     "default": dj_database_url.parse(
-        variable_requerida("DATABASE_URL"),
-        conn_max_age=600,
+        variable_requerida(
+            "DIRECT_DATABASE_URL" if USAR_BASE_DIRECTA else "DATABASE_URL"
+        ),
+        conn_max_age=0 if USAR_BASE_DIRECTA else 600,
         conn_health_checks=True,
         ssl_require=True,
     )

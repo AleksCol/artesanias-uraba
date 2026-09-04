@@ -47,9 +47,14 @@ python manage.py runserver
 
 Están todas en `.env.example`. Dos detalles que no son obvios:
 
-- Neon expone dos URLs. `DATABASE_URL` es la que usa la aplicación (en
-  producción, el endpoint con `-pooler`). `DIRECT_DATABASE_URL` es el mismo
-  host sin `-pooler`, y es la que conviene usar en local y para migraciones.
+- Neon expone dos URLs. `DATABASE_URL` es la que usa la aplicación (el endpoint
+  con `-pooler`). `DIRECT_DATABASE_URL` es el mismo host sin `-pooler` y es la
+  que hay que usar para migraciones. Para no editar el `.env` cada vez, existe
+  `USAR_BASE_DIRECTA`:
+
+  ```powershell
+  $env:USAR_BASE_DIRECTA=1; python manage.py migrate
+  ```
 - Las llaves de Stripe deben empezar por `pk_test_` y `sk_test_`.
 
 ## Estado
