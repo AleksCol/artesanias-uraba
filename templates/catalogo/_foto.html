@@ -1,0 +1,14 @@
+{# Foto de producto con su estado. Espera `producto` y `proporcion`. #}
+<div class="relative {{ proporcion }} overflow-hidden bg-fibra">
+  {% if producto.imagen %}
+    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
+         class="h-full w-full object-cover{% if not producto.hay_existencias %} opacity-45{% endif %}">
+  {% else %}
+    <div class="flex h-full items-end p-5 text-sm text-madera">Sin fotografía</div>
+  {% endif %}
+  {% if not producto.hay_existencias %}
+    <p class="absolute left-0 top-0 bg-corteza px-5 py-3 font-titulo text-lg leading-none text-hueso">
+      Agotado
+    </p>
+  {% endif %}
+</div>

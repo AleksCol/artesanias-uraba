@@ -44,7 +44,7 @@ PRODUCTOS = [
         "iguales.",
     ),
     (
-        "tejido", "Hamaca de hilo de Necoclí", 42000000, 2, 3255245,
+        "tejido", "Hamaca de hilo de Necoclí", 42000000, 2, 15313975,
         "Tejida en telar de horqueta con hilo de algodón mercerizado.\n"
         "Dos metros y medio de largo, con brazos de macramé anudados a mano.\n"
         "Soporta hasta 150 kilos.",
@@ -94,6 +94,10 @@ class Command(BaseCommand):
 
     def handle(self, *args: Any, **opciones: Any) -> None:
         if opciones["borrar_todo"]:
+            # Borrar la fila no borra el archivo: hay que hacerlo a mano o
+            # media/ se llena de imágenes huérfanas con nombres sufijados.
+            for producto in Producto.objects.exclude(imagen=""):
+                producto.imagen.delete(save=False)
             productos_borrados = Producto.objects.all().delete()[0]
             categorias_borradas = Categoria.objects.all().delete()[0]
             self.stdout.write(

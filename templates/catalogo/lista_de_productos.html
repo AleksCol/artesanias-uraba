@@ -52,14 +52,11 @@
         {% cycle 'medio' 'medio' 'ancho' as tamano silent %}
         <article class="{% if tamano == 'ancho' %}md:col-span-12{% else %}md:col-span-6{% endif %}">
           <a href="{{ producto.get_absolute_url }}" class="block">
-            <div class="{% if tamano == 'ancho' %}aspect-[16/9]{% else %}aspect-[4/5]{% endif %} overflow-hidden bg-fibra">
-              {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
-                     class="h-full w-full object-cover">
-              {% else %}
-                <div class="flex h-full items-end p-5 text-sm text-madera">Sin fotografía</div>
-              {% endif %}
-            </div>
+            {% if tamano == 'ancho' %}
+              {% include "catalogo/_foto.html" with proporcion="aspect-[16/9]" %}
+            {% else %}
+              {% include "catalogo/_foto.html" with proporcion="aspect-[4/5]" %}
+            {% endif %}
           </a>
 
           <div class="mt-5 flex items-baseline justify-between gap-6 border-t-2 border-corteza pt-4">
@@ -68,9 +65,7 @@
             </h2>
             <p class="shrink-0 font-titulo text-2xl text-selva sm:text-3xl">{{ producto.precio|pesos }}</p>
           </div>
-          <p class="mt-2 text-sm text-madera">
-            {{ producto.categoria.nombre }}{% if not producto.hay_existencias %} · Agotado{% endif %}
-          </p>
+          <p class="mt-2 text-sm text-madera">{{ producto.categoria.nombre }}</p>
         </article>
       {% endfor %}
     </div>
