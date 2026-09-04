@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Django
+*.sqlite3
+/staticfiles/
+/media/
+
+# Entorno y secretos
+.env
+.env.local
+
+# Node / Tailwind
+node_modules/
+/static/css/salida.css
+
+# Herramientas de IA
+.claude/
+CLAUDE.md
+.agents/
+.windsurf/
+
+# Editor y sistema
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

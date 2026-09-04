@@ -1,0 +1,18 @@
+{
+  "name": "artesanias-uraba",
+  "version": "1.0.0",
+  "description": "Estilos Tailwind para la tienda de artesanias de Uraba",
+  "scripts": {
+    "estilos": "tailwindcss -i ./static/css/entrada.css -o ./static/css/salida.css --minify",
+    "estilos:watch": "tailwindcss -i ./static/css/entrada.css -o ./static/css/salida.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "private": true
+}

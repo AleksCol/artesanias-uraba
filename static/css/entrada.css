@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* Tailwind necesita saber dónde buscar las clases usadas. */
+@source "../../templates";
+@source "../../**/templates";
+
+/*
+  Paleta tomada de la materia prima de la región: fibra de iraca y caña
+  flecha (ocre), monte y platanera (verde), tinte de añil, madera y
+  corteza. Nada de crema con terracota.
+*/
+@theme {
+  --color-corteza: #241C17;
+  --color-madera: #4A3728;
+  --color-selva: #1F3A2C;
+  --color-hueso: #FBFAF7;
+  --color-iraca: #C4881F;
+  --color-anil: #22405E;
+  --color-fibra: #D8CDB8;
+
+  --font-titulo: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-texto: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
