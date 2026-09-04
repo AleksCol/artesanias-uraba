@@ -6,41 +6,60 @@
   <title>{% block titulo %}Artesanías de Urabá{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/salida.css' %}">
 </head>
 <body class="min-h-screen bg-hueso font-texto text-corteza antialiased">
 
-  <header class="bg-selva text-hueso">
-    <div class="mx-auto flex max-w-6xl items-baseline justify-between px-5 py-5">
-      <a href="{% url 'catalogo:lista_de_productos' %}" class="font-titulo text-2xl leading-none">
+  {% comment %}
+    Cabecera y titular comparten un solo bloque oscuro: le da peso a la parte
+    de arriba y separa el encabezado del catálogo sin necesidad de una tarjeta.
+  {% endcomment %}
+  <div class="bg-selva text-hueso">
+    <header class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-6">
+      <a href="{% url 'catalogo:lista_de_productos' %}" class="font-titulo text-2xl leading-none sm:text-3xl">
         Artesanías de Urabá
       </a>
-      <nav class="flex items-baseline gap-6 text-sm">
+      <nav class="flex items-center gap-7 text-sm">
         <a href="{% url 'catalogo:lista_de_productos' %}" class="hover:text-iraca">Catálogo</a>
         <a href="{% url 'pedidos:ver_carrito' %}" class="hover:text-iraca">
-          Carrito{% if unidades_en_el_carrito %} ({{ unidades_en_el_carrito }}){% endif %}
+          Carrito{% if unidades_en_el_carrito %} <span class="text-iraca">({{ unidades_en_el_carrito }})</span>{% endif %}
         </a>
       </nav>
-    </div>
-  </header>
+    </header>
+    {% block encabezado_extra %}{% endblock %}
+  </div>
 
   {% if messages %}
-    <div class="mx-auto max-w-6xl px-5 pt-4">
+    <div class="mx-auto max-w-7xl px-6 pt-5">
       {% for mensaje in messages %}
-        <p class="border-l-2 border-iraca bg-fibra/40 px-4 py-2 text-sm">{{ mensaje }}</p>
+        <p class="border-l-4 border-iraca bg-fibra/50 px-4 py-3">{{ mensaje }}</p>
       {% endfor %}
     </div>
   {% endif %}
 
-  <main class="mx-auto max-w-6xl px-5 py-12">
+  <main class="mx-auto max-w-7xl px-6 {% block espaciado_principal %}py-14{% endblock %}">
     {% block contenido %}{% endblock %}
   </main>
 
-  <footer class="mt-16 border-t border-fibra">
-    <div class="mx-auto max-w-6xl px-5 py-8 text-sm text-madera">
-      <p>Tejido, talla y barro de la subregión de Urabá, Antioquia.</p>
-      <p class="mt-1">Pagos en modo de prueba de Stripe: no se cobra dinero real.</p>
+  <footer class="mt-24 bg-selva text-hueso">
+    <div class="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-3">
+      <div class="sm:col-span-2">
+        <p class="font-titulo text-2xl leading-snug">
+          Tejido, talla y barro de la subregión de Urabá
+        </p>
+        <p class="mt-3 max-w-md text-sm text-fibra">
+          Cada pieza sale de un taller distinto, en Necoclí, Turbo, Apartadó y
+          Arboletes. Las cantidades son las que alcanza a hacer una persona.
+        </p>
+      </div>
+      <div class="text-sm text-fibra">
+        <p><a href="{% url 'catalogo:lista_de_productos' %}" class="hover:text-iraca">Catálogo</a></p>
+        <p class="mt-2"><a href="{% url 'pedidos:ver_carrito' %}" class="hover:text-iraca">Carrito</a></p>
+        <p class="mt-6 border-t border-hueso/20 pt-4">
+          Pagos en modo de prueba de Stripe. No se cobra dinero real.
+        </p>
+      </div>
     </div>
   </footer>
 

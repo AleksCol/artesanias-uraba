@@ -64,7 +64,7 @@ class Producto(models.Model):
     objects = ProductoQuerySet.as_manager()
 
     class Meta:
-        ordering = ["-creado"]
+        ordering = ["-creado", "-id"]
         indexes = [
             models.Index(fields=["activo", "categoria"]),
         ]

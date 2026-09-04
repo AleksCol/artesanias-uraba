@@ -32,7 +32,14 @@ npm install
 cp .env.example .env              # y completar los valores
 python manage.py migrate
 python manage.py createsuperuser
+python manage.py cargar_datos_de_ejemplo
 ```
+
+`cargar_datos_de_ejemplo` crea cuatro categorías y ocho productos de muestra y
+baja las fotos de Pexels (licencia libre, uso comercial sin atribución). Son
+fotos de referencia, no de piezas reales. Acepta `--borrar-todo` para empezar
+de cero y `--sin-fotos` para trabajar sin conexión. Como `media/` no va al
+repositorio, en una clonada nueva hay que correrlo para tener imágenes.
 
 Dos procesos en paralelo durante el desarrollo:
 

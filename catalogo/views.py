@@ -32,11 +32,23 @@ def detalle_de_producto(request: HttpRequest, slug_del_producto: str) -> HttpRes
         Producto.objects.publicados().select_related("categoria"),
         slug=slug_del_producto,
     )
-    relacionados = (
+    # Primero las del mismo oficio; si no hay, se completa con el resto del
+    # catálogo para que la página no termine en un vacío.
+    del_mismo_oficio = (
         Producto.objects.publicados()
         .filter(categoria=producto.categoria)
-        .exclude(pk=producto.pk)[:3]
+        .exclude(pk=producto.pk)
+        .select_related("categoria")
     )
+    relacionados = list(del_mismo_oficio[:3])
+    if len(relacionados) < 3:
+        completar = (
+            Producto.objects.publicados()
+            .exclude(pk=producto.pk)
+            .exclude(pk__in=[otro.pk for otro in relacionados])
+            .select_related("categoria")
+        )
+        relacionados += list(completar[: 3 - len(relacionados)])
     return render(
         request,
         "catalogo/detalle_de_producto.html",

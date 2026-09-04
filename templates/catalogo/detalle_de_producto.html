@@ -5,52 +5,71 @@
 
 {% block contenido %}
 
-  <nav class="text-sm text-madera">
+  <nav class="border-b border-fibra pb-4 text-sm text-madera">
     <a href="{% url 'catalogo:lista_de_productos' %}" class="hover:text-corteza">Catálogo</a>
     <span class="px-2 text-fibra">/</span>
     <a href="{{ producto.categoria.get_absolute_url }}" class="hover:text-corteza">{{ producto.categoria.nombre }}</a>
   </nav>
 
-  <div class="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-5">
+  <div class="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-12">
 
-    <div class="lg:col-span-3">
+    <div class="lg:col-span-7">
       <div class="aspect-[4/5] overflow-hidden bg-fibra">
         {% if producto.imagen %}
           <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
                class="h-full w-full object-cover">
         {% else %}
-          <div class="flex h-full items-end p-5 text-xs text-madera">Sin fotografía</div>
+          <div class="flex h-full items-end p-6 text-sm text-madera">Sin fotografía</div>
         {% endif %}
       </div>
     </div>
 
-    <div class="lg:col-span-2">
-      <h1 class="font-titulo text-3xl leading-tight sm:text-4xl">{{ producto.nombre }}</h1>
+    <div class="lg:col-span-5">
+      <h1 class="font-titulo text-4xl leading-[1.05] md:text-5xl">{{ producto.nombre }}</h1>
 
-      <p class="mt-5 font-titulo text-3xl text-selva">{{ producto.precio|pesos }}</p>
+      <p class="mt-6 border-t-2 border-corteza pt-4 font-titulo text-3xl text-selva md:text-4xl">
+        {{ producto.precio|pesos }}
+      </p>
 
       {% if producto.descripcion %}
-        <div class="mt-6 max-w-prose whitespace-pre-line leading-relaxed text-madera">{{ producto.descripcion }}</div>
+        <div class="mt-6 max-w-prose whitespace-pre-line text-lg leading-relaxed text-madera">{{ producto.descripcion }}</div>
       {% endif %}
 
-      <div class="mt-8 border-t border-fibra pt-6">
+      {% comment %}
+        Una ficha de datos con reglas, en vez de una tarjeta: da estructura a la
+        columna sin repetir la estética de recuadros del resto de la web.
+      {% endcomment %}
+      <dl class="mt-10 text-sm">
+        <div class="flex justify-between gap-4 border-t border-fibra py-3">
+          <dt class="text-madera">Oficio</dt>
+          <dd><a href="{{ producto.categoria.get_absolute_url }}" class="hover:text-anil">{{ producto.categoria.nombre }}</a></dd>
+        </div>
+        <div class="flex justify-between gap-4 border-t border-fibra py-3">
+          <dt class="text-madera">Disponibilidad</dt>
+          <dd>
+            {% if producto.stock == 0 %}Agotado
+            {% elif producto.stock == 1 %}Queda una sola pieza
+            {% else %}{{ producto.stock }} piezas{% endif %}
+          </dd>
+        </div>
+        <div class="flex justify-between gap-4 border-y border-fibra py-3">
+          <dt class="text-madera">Despacho</dt>
+          <dd>Desde Apartadó</dd>
+        </div>
+      </dl>
+
+      <div class="mt-8">
         {% if producto.hay_existencias %}
-          <p class="text-sm text-madera">
-            {% if producto.stock == 1 %}
-              Queda una sola pieza.
-            {% else %}
-              Quedan {{ producto.stock }} piezas.
-            {% endif %}
-          </p>
           {# El botón se conecta en el bloque de carrito. #}
           <button type="button" disabled
-                  class="mt-4 w-full bg-selva px-6 py-3 text-hueso disabled:opacity-40">
+                  class="w-full border-2 border-selva px-6 py-4 font-titulo text-xl text-selva opacity-60">
             Agregar al carrito
           </button>
-          <p class="mt-2 text-xs text-madera">El carrito se conecta en el siguiente bloque.</p>
+          <p class="mt-3 text-sm text-madera">El carrito se conecta en el siguiente bloque.</p>
         {% else %}
-          <p class="text-sm text-madera">
-            Agotado por ahora. Cada pieza se teje o se talla de a una.
+          <p class="border-l-4 border-iraca bg-fibra/50 px-4 py-3 text-madera">
+            Agotado por ahora. Cada pieza se teje o se talla de a una, y la
+            siguiente tanda toma su tiempo.
           </p>
         {% endif %}
       </div>
@@ -59,9 +78,9 @@
   </div>
 
   {% if relacionados %}
-    <section class="mt-20 border-t border-fibra pt-10">
-      <h2 class="font-titulo text-2xl">Más de {{ producto.categoria.nombre|lower }}</h2>
-      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-3">
+    <section class="mt-24">
+      <h2 class="border-b-2 border-corteza pb-4 font-titulo text-3xl">Otras piezas</h2>
+      <div class="mt-10 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-3">
         {% for otro in relacionados %}
           <article>
             <a href="{{ otro.get_absolute_url }}" class="block">
@@ -70,9 +89,14 @@
                   <img src="{{ otro.imagen.url }}" alt="{{ otro.nombre }}" class="h-full w-full object-cover">
                 {% endif %}
               </div>
-              <h3 class="mt-3 font-titulo text-lg leading-snug hover:text-anil">{{ otro.nombre }}</h3>
             </a>
-            <p class="mt-1 font-titulo">{{ otro.precio|pesos }}</p>
+            <div class="mt-4 flex items-baseline justify-between gap-4 border-t-2 border-corteza pt-3">
+              <h3 class="font-titulo text-xl leading-tight">
+                <a href="{{ otro.get_absolute_url }}" class="hover:text-anil">{{ otro.nombre }}</a>
+              </h3>
+              <p class="shrink-0 font-titulo text-xl text-selva">{{ otro.precio|pesos }}</p>
+            </div>
+            <p class="mt-2 text-sm text-madera">{{ otro.categoria.nombre }}</p>
           </article>
         {% endfor %}
       </div>
