@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load precios %}
+
+{% block titulo %}{{ producto.nombre }} · Artesanías de Urabá{% endblock %}
+
+{% block contenido %}
+
+  <nav class="text-sm text-madera">
+    <a href="{% url 'catalogo:lista_de_productos' %}" class="hover:text-corteza">Catálogo</a>
+    <span class="px-2 text-fibra">/</span>
+    <a href="{{ producto.categoria.get_absolute_url }}" class="hover:text-corteza">{{ producto.categoria.nombre }}</a>
+  </nav>
+
+  <div class="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-5">
+
+    <div class="lg:col-span-3">
+      <div class="aspect-[4/5] overflow-hidden bg-fibra">
+        {% if producto.imagen %}
+          <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
+               class="h-full w-full object-cover">
+        {% else %}
+          <div class="flex h-full items-end p-5 text-xs text-madera">Sin fotografía</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <h1 class="font-titulo text-3xl leading-tight sm:text-4xl">{{ producto.nombre }}</h1>
+
+      <p class="mt-5 font-titulo text-3xl text-selva">{{ producto.precio|pesos }}</p>
+
+      {% if producto.descripcion %}
+        <div class="mt-6 max-w-prose whitespace-pre-line leading-relaxed text-madera">{{ producto.descripcion }}</div>
+      {% endif %}
+
+      <div class="mt-8 border-t border-fibra pt-6">
+        {% if producto.hay_existencias %}
+          <p class="text-sm text-madera">
+            {% if producto.stock == 1 %}
+              Queda una sola pieza.
+            {% else %}
+              Quedan {{ producto.stock }} piezas.
+            {% endif %}
+          </p>
+          {# El botón se conecta en el bloque de carrito. #}
+          <button type="button" disabled
+                  class="mt-4 w-full bg-selva px-6 py-3 text-hueso disabled:opacity-40">
+            Agregar al carrito
+          </button>
+          <p class="mt-2 text-xs text-madera">El carrito se conecta en el siguiente bloque.</p>
+        {% else %}
+          <p class="text-sm text-madera">
+            Agotado por ahora. Cada pieza se teje o se talla de a una.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  {% if relacionados %}
+    <section class="mt-20 border-t border-fibra pt-10">
+      <h2 class="font-titulo text-2xl">Más de {{ producto.categoria.nombre|lower }}</h2>
+      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-3">
+        {% for otro in relacionados %}
+          <article>
+            <a href="{{ otro.get_absolute_url }}" class="block">
+              <div class="aspect-[4/5] overflow-hidden bg-fibra">
+                {% if otro.imagen %}
+                  <img src="{{ otro.imagen.url }}" alt="{{ otro.nombre }}" class="h-full w-full object-cover">
+                {% endif %}
+              </div>
+              <h3 class="mt-3 font-titulo text-lg leading-snug hover:text-anil">{{ otro.nombre }}</h3>
+            </a>
+            <p class="mt-1 font-titulo">{{ otro.precio|pesos }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+{% endblock %}

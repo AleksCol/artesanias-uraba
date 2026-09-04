@@ -54,5 +54,12 @@ Están todas en `.env.example`. Dos detalles que no son obvios:
 
 ## Estado
 
-Esqueleto funcionando: proyecto, apps, plantilla base, estilos y rutas.
-Pendiente: modelos de catálogo, carrito, checkout y webhook.
+Listo: esqueleto, modelos de catálogo (`Categoria`, `Producto`) con su admin,
+listado con filtro por categoría y página de detalle.
+
+Pendiente: carrito en sesión, Stripe Checkout, webhook de confirmación y
+página de pago exitoso.
+
+Los precios se guardan **en centavos** (`Producto.precio`), que es la unidad
+que espera Stripe. Para mostrarlos hay un filtro de plantilla, `|pesos`, y la
+misma función la usa el admin.
