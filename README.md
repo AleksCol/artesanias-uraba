@@ -67,10 +67,18 @@ Están todas en `.env.example`. Dos detalles que no son obvios:
 ## Estado
 
 Listo: esqueleto, modelos de catálogo (`Categoria`, `Producto`) con su admin,
-listado con filtro por categoría y página de detalle.
+listado con filtro por categoría, página de detalle y carrito en sesión.
 
-Pendiente: carrito en sesión, Stripe Checkout, webhook de confirmación y
-página de pago exitoso.
+Pendiente: Stripe Checkout, webhook de confirmación y página de pago exitoso.
+
+El carrito no exige cuenta: vive en la sesión y guarda solo cantidades. El
+precio se lee siempre de la base, y se congelará en `ItemPedido` al crear el
+pedido. Las cantidades se recortan a las existencias en el servidor, no solo
+en el `max` del formulario.
+
+Agregar al carrito funciona sin JavaScript (POST y redirección). Con
+JavaScript se envía por `fetch` y la foto viaja hasta el contador del
+encabezado; ese recorrido se omite con `prefers-reduced-motion`.
 
 Los precios se guardan **en centavos** (`Producto.precio`), que es la unidad
 que espera Stripe. Para mostrarlos hay un filtro de plantilla, `|pesos`, y la

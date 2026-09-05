@@ -20,4 +20,9 @@
 
   --font-titulo: "Fraunces", Georgia, "Times New Roman", serif;
   --font-texto: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Las curvas de CSS de fábrica son demasiado suaves. Estas dos las lee
+     también el JS del carrito, para que no haya dos verdades. */
+  --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-recorrido: cubic-bezier(0.77, 0, 0.175, 1);
 }

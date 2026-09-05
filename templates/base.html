@@ -22,8 +22,8 @@
       </a>
       <nav class="flex items-center gap-7 text-sm">
         <a href="{% url 'catalogo:lista_de_productos' %}" class="hover:text-iraca">Catálogo</a>
-        <a href="{% url 'pedidos:ver_carrito' %}" class="hover:text-iraca">
-          Carrito{% if unidades_en_el_carrito %} <span class="text-iraca">({{ unidades_en_el_carrito }})</span>{% endif %}
+        <a href="{% url 'pedidos:ver_carrito' %}" class="hover:text-iraca" data-enlace-del-carrito>
+          Carrito<span class="text-iraca" data-contador-del-carrito>{% if unidades_en_el_carrito %} ({{ unidades_en_el_carrito }}){% endif %}</span>
         </a>
       </nav>
     </header>
@@ -33,7 +33,7 @@
   {% if messages %}
     <div class="mx-auto max-w-7xl px-6 pt-5">
       {% for mensaje in messages %}
-        <p class="border-l-4 border-iraca bg-fibra/50 px-4 py-3">{{ mensaje }}</p>
+        <p class="border-l-4 px-4 py-3 {% if mensaje.level >= 40 %}border-anil bg-anil/10{% elif mensaje.level >= 30 %}border-iraca bg-iraca/15{% else %}border-selva bg-fibra/50{% endif %}">{{ mensaje }}</p>
       {% endfor %}
     </div>
   {% endif %}
@@ -63,5 +63,6 @@
     </div>
   </footer>
 
+  <script src="{% static 'js/carrito.js' %}" defer></script>
 </body>
 </html>
