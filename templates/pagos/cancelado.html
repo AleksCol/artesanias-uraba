@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block titulo %}Pago cancelado · Artesanías de Urabá{% endblock %}
+
+{% block encabezado_extra %}
+  <div class="mx-auto max-w-7xl px-6 pb-14 pt-8 md:pb-16 md:pt-10">
+    <h1 class="font-titulo text-5xl leading-[0.95] md:text-7xl">Pago cancelado</h1>
+  </div>
+{% endblock %}
+
+{% block espaciado_principal %}pb-20 pt-0{% endblock %}
+
+{% block contenido %}
+
+  <div class="mt-16 max-w-prose">
+    <p class="font-titulo text-3xl leading-snug">No se cobró nada.</p>
+    <p class="mt-4 text-lg leading-relaxed text-madera">
+      El carrito quedó como estaba, con todo adentro. Puedes retomar cuando
+      quieras.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-4">
+      <a href="{% url 'pedidos:ver_carrito' %}"
+         class="inline-block bg-selva px-6 py-4 font-titulo text-xl text-hueso">
+        Volver al carrito
+      </a>
+      <a href="{% url 'catalogo:lista_de_productos' %}"
+         class="inline-block border-2 border-selva px-6 py-4 font-titulo text-xl text-selva hover:bg-selva hover:text-hueso">
+        Seguir viendo el catálogo
+      </a>
+    </div>
+  </div>
+
+{% endblock %}

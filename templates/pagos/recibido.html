@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load precios %}
+
+{% block titulo %}Pedido recibido · Artesanías de Urabá{% endblock %}
+
+{% block encabezado_extra %}
+  <div class="mx-auto max-w-7xl px-6 pb-14 pt-8 md:pb-16 md:pt-10">
+    <h1 class="font-titulo text-5xl leading-[0.95] md:text-7xl">
+      {% if pedido and pedido.esta_pagado %}Pago confirmado{% elif pedido %}Pedido recibido{% else %}No encontramos el pedido{% endif %}
+    </h1>
+  </div>
+{% endblock %}
+
+{% block espaciado_principal %}pb-20 pt-0{% endblock %}
+
+{% block contenido %}
+
+  {% if pedido %}
+
+    <div class="mt-12 grid grid-cols-1 gap-14 lg:grid-cols-12">
+
+      <div class="lg:col-span-7">
+        {% if pedido.esta_pagado %}
+          <p class="font-titulo text-3xl leading-snug">
+            Listo. Tu pago quedó confirmado.
+          </p>
+          <p class="mt-5 max-w-prose text-lg leading-relaxed text-madera">
+            Te llega el detalle a {{ pedido.email }}. La pieza se despacha desde
+            Apartadó; te escribimos cuando salga.
+          </p>
+        {% else %}
+          <p class="font-titulo text-3xl leading-snug">
+            Estamos esperando la confirmación de Stripe.
+          </p>
+          <p class="mt-5 max-w-prose text-lg leading-relaxed text-madera">
+            El pedido quedó registrado, pero el pago lo confirma Stripe por su
+            cuenta y todavía no llegó ese aviso. Suele tardar segundos. Si en un
+            rato sigue así, escríbenos y lo miramos con el número de pedido.
+          </p>
+        {% endif %}
+
+        <dl class="mt-10 max-w-md text-sm">
+          <div class="flex justify-between gap-4 border-t border-fibra py-3">
+            <dt class="text-madera">Pedido</dt>
+            <dd class="font-titulo text-base">N.º {{ pedido.id }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 border-t border-fibra py-3">
+            <dt class="text-madera">Estado</dt>
+            <dd>{{ pedido.get_estado_display }}</dd>
+          </div>
+          <div class="flex justify-between gap-4 border-y border-fibra py-3">
+            <dt class="text-madera">Correo</dt>
+            <dd>{{ pedido.email }}</dd>
+          </div>
+        </dl>
+
+        <a href="{% url 'catalogo:lista_de_productos' %}"
+           class="mt-10 inline-block border-2 border-selva px-6 py-4 font-titulo text-xl text-selva hover:bg-selva hover:text-hueso">
+          Volver al catálogo
+        </a>
+      </div>
+
+      <div class="lg:col-span-5">
+        <h2 class="border-b-2 border-corteza pb-4 font-titulo text-2xl">Detalle</h2>
+        {% for item in pedido.items.all %}
+          <div class="flex items-baseline justify-between gap-4 border-b border-fibra py-4">
+            <p>
+              <span class="font-titulo text-lg">{{ item.producto.nombre }}</span>
+              <span class="text-sm text-madera"> × {{ item.cantidad }}</span>
+            </p>
+            <p class="shrink-0 font-titulo text-lg">{{ item.subtotal|pesos }}</p>
+          </div>
+        {% endfor %}
+        <div class="mt-6 flex items-baseline justify-between gap-6 border-t-4 border-corteza pt-5">
+          <p class="font-titulo text-2xl">Total</p>
+          <p class="font-titulo text-3xl text-selva">{{ pedido.total|pesos }}</p>
+        </div>
+        <p class="mt-5 text-sm text-madera">
+          Cobrado en modo de prueba de Stripe. No se movió dinero real.
+        </p>
+      </div>
+
+    </div>
+
+  {% else %}
+
+    <div class="mt-16 max-w-prose">
+      <p class="font-titulo text-3xl leading-snug">
+        Esta dirección no corresponde a ningún pedido.
+      </p>
+      <p class="mt-4 text-lg text-madera">
+        Se llega acá volviendo desde Stripe después de pagar. Si escribiste la
+        dirección a mano, no hay nada que mostrar.
+      </p>
+      <a href="{% url 'catalogo:lista_de_productos' %}"
+         class="mt-8 inline-block border-2 border-selva px-6 py-4 font-titulo text-xl text-selva hover:bg-selva hover:text-hueso">
+        Ir al catálogo
+      </a>
+    </div>
+
+  {% endif %}
+
+{% endblock %}

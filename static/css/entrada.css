@@ -3,6 +3,8 @@
 /* Tailwind necesita saber dónde buscar las clases usadas. */
 @source "../../templates";
 @source "../../**/templates";
+/* Los widgets de los formularios traen sus clases desde Python. */
+@source "../../**/forms.py";
 
 /*
   Paleta tomada de la materia prima de la región: fibra de iraca y caña

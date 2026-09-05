@@ -21,6 +21,8 @@ Stripe corre **en modo de prueba**. No se procesan pagos reales.
 | `pedidos`  | Carrito en sesión, pedidos y sus líneas                 |
 | `pagos`    | Sesión de Stripe Checkout, webhook y confirmación       |
 
+`Pedido` e `ItemPedido` viven en `pedidos`; `pagos` solo habla con Stripe.
+
 ## Puesta en marcha
 
 ```bash
@@ -64,17 +66,44 @@ Están todas en `.env.example`. Dos detalles que no son obvios:
   ```
 - Las llaves de Stripe deben empezar por `pk_test_` y `sk_test_`.
 
+## Pagos
+
+El cobro es Stripe Checkout por redirección. La aplicación nunca ve un dato de
+tarjeta: se arma una sesión de pago, se manda al comprador a Stripe y se vuelve.
+
+**El pago lo confirma el webhook, no el regreso del navegador.** Volver a
+`/pagos/listo/` solo significa que alguien volvió: esa URL se puede escribir a
+mano y se pierde si cierran la pestaña. Por eso esa vista no cambia el estado
+del pedido, y si el webhook todavía no llegó lo dice en pantalla en vez de
+afirmar un pago que nadie confirmó. El inventario también baja ahí, no antes.
+
+El webhook es idempotente: Stripe reintenta los eventos, y `_confirmar_pago`
+solo actúa sobre pedidos en `pendiente`, así que un evento repetido no descuenta
+el inventario dos veces.
+
+Para probarlo en local hace falta reenviar los eventos al servidor de
+desarrollo, con el CLI de Stripe:
+
+```bash
+stripe listen --forward-to localhost:8000/pagos/webhook/
+```
+
+Ese comando imprime un `whsec_...` que va en `STRIPE_WEBHOOK_SECRET`. Sin esa
+variable el webhook responde 503 a propósito, en vez de aceptar eventos sin
+verificar la firma.
+
 ## Estado
 
-Listo: esqueleto, modelos de catálogo (`Categoria`, `Producto`) con su admin,
-listado con filtro por categoría, página de detalle y carrito en sesión.
+Listo: catálogo con su admin, carrito en sesión, checkout con Stripe, webhook
+de confirmación, página de resultado y pedidos en el admin.
 
-Pendiente: Stripe Checkout, webhook de confirmación y página de pago exitoso.
+Pendiente: correo de confirmación al comprador y despliegue.
 
 El carrito no exige cuenta: vive en la sesión y guarda solo cantidades. El
-precio se lee siempre de la base, y se congelará en `ItemPedido` al crear el
-pedido. Las cantidades se recortan a las existencias en el servidor, no solo
-en el `max` del formulario.
+precio se lee de la base y se congela en `ItemPedido.precio_unitario` al crear
+el pedido, así que subir un precio no reescribe lo que ya se cobró. Las
+cantidades se recortan a las existencias en el servidor, no solo en el `max`
+del formulario, y al cobrar se vuelven a verificar con las filas bloqueadas.
 
 Agregar al carrito funciona sin JavaScript (POST y redirección). Con
 JavaScript se envía por `fetch` y la foto viaja hasta el contador del
