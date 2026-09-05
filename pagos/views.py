@@ -28,7 +28,6 @@ from pedidos.models import ItemPedido, Pedido
 
 from .forms import DatosDeEnvioForm
 
-
 class SinExistencias(Exception):
     """Se vendió el inventario entre que se armó el carrito y se fue a pagar."""
 
@@ -83,6 +82,13 @@ def _crear_sesion_de_stripe(request: HttpRequest, pedido: Pedido):
     )
     sesion = stripe.checkout.Session.create(
         mode="payment",
+        # Managed Payments viene activo por defecto en la cuenta, pero solo
+        # admite productos digitales: la documentación lista "physical goods"
+        # entre las categorías no soportadas, y todos sus códigos de impuesto
+        # elegibles son de software, libros, cursos o streaming. Una tienda de
+        # cestería y barro no tiene forma de calificar, así que se apaga por
+        # sesión. También se puede apagar por defecto en el panel de Stripe.
+        managed_payments={"enabled": False},
         line_items=[
             {
                 "price_data": {

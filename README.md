@@ -43,6 +43,12 @@ fotos de referencia, no de piezas reales. Acepta `--borrar-todo` para empezar
 de cero y `--sin-fotos` para trabajar sin conexión. Como `media/` no va al
 repositorio, en una clonada nueva hay que correrlo para tener imágenes.
 
+Sobre un catálogo que ya existe, el comando actualiza nombres y descripciones
+pero **no toca precio ni existencias**: volver a correrlo no puede deshacer una
+venta ni revertir un precio cambiado desde el admin. Y `--borrar-todo` falla
+con un mensaje claro si algún producto ya fue comprado, porque `ItemPedido` lo
+protege.
+
 Dos procesos en paralelo durante el desarrollo:
 
 ```bash
@@ -81,8 +87,9 @@ El webhook es idempotente: Stripe reintenta los eventos, y `_confirmar_pago`
 solo actúa sobre pedidos en `pendiente`, así que un evento repetido no descuenta
 el inventario dos veces.
 
-Para probarlo en local hace falta reenviar los eventos al servidor de
-desarrollo, con el CLI de Stripe:
+### Probarlo en local
+
+Hay que reenviar los eventos al servidor de desarrollo con el CLI de Stripe:
 
 ```bash
 stripe listen --forward-to localhost:8000/pagos/webhook/
@@ -91,6 +98,25 @@ stripe listen --forward-to localhost:8000/pagos/webhook/
 Ese comando imprime un `whsec_...` que va en `STRIPE_WEBHOOK_SECRET`. Sin esa
 variable el webhook responde 503 a propósito, en vez de aceptar eventos sin
 verificar la firma.
+
+**Después de escribir el secreto en el `.env` hay que reiniciar `runserver`.**
+Las variables se leen una sola vez, al importar los settings; un servidor que
+ya estaba corriendo sigue con el valor viejo y rechaza los eventos con 503.
+
+### Dos cosas de Stripe que costaron descubrir
+
+**Managed Payments hay que apagarlo.** Viene activo por defecto en la cuenta y
+solo admite productos digitales: la documentación lista "physical goods" entre
+las categorías no soportadas, y sus códigos de impuesto elegibles son todos de
+software, libros, cursos o streaming. Una tienda de cestería y barro no puede
+calificar, así que la sesión se crea con `managed_payments={"enabled": False}`.
+Sin eso, Stripe rechaza la solicitud pidiendo un código de impuesto que no
+existe para bienes físicos.
+
+**El peso colombiano lleva dos decimales.** Se confirmó contra una sesión real:
+`unit_amount` de 18500000 se muestra en Stripe como COP 185,000.00. Es decir,
+los montos van en centavos, igual que `Producto.precio`. Si COP hubiera sido
+moneda de cero decimales, el mismo número habría cobrado cien veces de más.
 
 ## Estado
 

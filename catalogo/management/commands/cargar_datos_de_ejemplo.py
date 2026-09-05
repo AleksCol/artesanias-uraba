@@ -9,7 +9,8 @@ import urllib.request
 from typing import Any
 
 from django.core.files.base import ContentFile
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.db.models import ProtectedError
 from django.utils.text import slugify
 
 from catalogo.models import Categoria, Producto
@@ -98,7 +99,20 @@ class Command(BaseCommand):
             # media/ se llena de imágenes huérfanas con nombres sufijados.
             for producto in Producto.objects.exclude(imagen=""):
                 producto.imagen.delete(save=False)
-            productos_borrados = Producto.objects.all().delete()[0]
+            try:
+                productos_borrados = Producto.objects.all().delete()[0]
+            except ProtectedError as error:
+                # Un producto vendido no se puede borrar: el pedido quedaría
+                # sin poder decir qué se vendió. Es a propósito, pero conviene
+                # explicarlo en vez de soltar un traceback.
+                afectados = len(error.protected_objects)
+                raise CommandError(
+                    f"No se puede borrar el catálogo: {afectados} línea(s) de "
+                    "pedidos ya compradas apuntan a estos productos. Para "
+                    "recargar los datos de ejemplo hay que borrar antes esos "
+                    "pedidos desde el admin, o correr el comando sin "
+                    "--borrar-todo (actualiza los productos existentes)."
+                ) from error
             categorias_borradas = Categoria.objects.all().delete()[0]
             self.stdout.write(
                 f"Borrados {productos_borrados} productos y "
@@ -114,18 +128,26 @@ class Command(BaseCommand):
             self.stdout.write(f"{'+' if creada else '='} categoría {nombre}")
 
         for clave, nombre, precio, stock, id_foto, descripcion in PRODUCTOS:
+            descriptivos = {
+                "nombre": nombre,
+                "categoria": categorias[clave],
+                "descripcion": descripcion,
+                "activo": True,
+            }
+            # El precio y las existencias solo se fijan al crear. Si el producto
+            # ya existe, se dejan como están: volver a correr este comando no
+            # puede deshacer una venta ni revertir un precio que ya se cambió
+            # desde el admin. Para volver a los valores de muestra está
+            # --borrar-todo.
             producto, creado = Producto.objects.update_or_create(
                 slug=slugify(nombre),
-                defaults={
-                    "nombre": nombre,
-                    "categoria": categorias[clave],
-                    "descripcion": descripcion,
-                    "precio": precio,
-                    "stock": stock,
-                    "activo": True,
-                },
+                defaults=descriptivos,
+                create_defaults={**descriptivos, "precio": precio, "stock": stock},
             )
-            self.stdout.write(f"{'+' if creado else '='} {nombre}")
+            self.stdout.write(
+                f"{'+' if creado else '='} {nombre}"
+                + ("" if creado else f" (se respetan precio y stock actuales: {producto.stock})")
+            )
 
             if opciones["sin_fotos"] or producto.imagen:
                 continue
