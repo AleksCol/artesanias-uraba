@@ -39,18 +39,32 @@ SECRET_KEY = variable_requerida("DJANGO_SECRET_KEY")
 
 DEBUG = variable_booleana("DJANGO_DEBUG", por_defecto=False)
 
-ALLOWED_HOSTS: list[str] = [
-    host.strip()
-    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if host.strip()
-]
+def lista_de_variable(nombre: str, por_defecto: str = "") -> list[str]:
+    """Lee una variable separada por comas y descarta los espacios vacíos."""
+    return [
+        valor.strip()
+        for valor in os.environ.get(nombre, por_defecto).split(",")
+        if valor.strip()
+    ]
+
+
+ALLOWED_HOSTS: list[str] = lista_de_variable(
+    "DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1"
+)
 
 # Necesario para que el POST del checkout y del admin pasen detrás de HTTPS.
-CSRF_TRUSTED_ORIGINS: list[str] = [
-    origen.strip()
-    for origen in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-    if origen.strip()
-]
+CSRF_TRUSTED_ORIGINS: list[str] = lista_de_variable("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+# Railway inyecta solo el dominio público del servicio. Se agrega acá para que
+# el primer despliegue responda sin configurar nada a mano; las dos variables
+# de arriba siguen mandando y son las que sirven para un dominio propio.
+DOMINIO_DE_RAILWAY = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
+if DOMINIO_DE_RAILWAY:
+    if DOMINIO_DE_RAILWAY not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(DOMINIO_DE_RAILWAY)
+    origen_de_railway = f"https://{DOMINIO_DE_RAILWAY}"
+    if origen_de_railway not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origen_de_railway)
 
 
 INSTALLED_APPS = [
@@ -107,6 +121,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 # para no tener que editar el .env cada vez que se corre una migración:
 #   PowerShell:  $env:USAR_BASE_DIRECTA=1; python manage.py migrate
 USAR_BASE_DIRECTA = variable_booleana("USAR_BASE_DIRECTA")
+if USAR_BASE_DIRECTA and not os.environ.get("DIRECT_DATABASE_URL"):
+    # El arranque en producción pide el endpoint directo para migrar. Si no
+    # está configurado, se sigue con el normal: es preferible migrar por el
+    # pooler a que el contenedor no levante.
+    USAR_BASE_DIRECTA = False
 
 DATABASES = {
     "default": dj_database_url.parse(
@@ -186,3 +205,13 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+    # HSTS le dice al navegador que nunca más use http para este dominio, y lo
+    # recuerda durante todo el plazo: activarlo antes de tener el HTTPS firme
+    # deja el sitio inalcanzable y no se puede deshacer del lado del servidor.
+    # Por eso arranca apagado. Una vez confirmado el dominio, subirlo por etapas
+    # (por ejemplo 3600, después 31536000).
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SEGUNDOS", "0"))
+    if SECURE_HSTS_SECONDS:
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = variable_booleana("DJANGO_HSTS_PRELOAD")

@@ -15,7 +15,8 @@ venv/
 
 # Node / Tailwind
 node_modules/
-/static/css/salida.css
+# Ojo: static/css/salida.css SÍ se versiona. Es la hoja que sirve la app en
+# producción, y el build de Railway no corre Tailwind.
 
 # Herramientas de IA
 .claude/

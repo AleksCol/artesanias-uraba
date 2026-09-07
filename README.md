@@ -89,6 +89,62 @@ mantenimiento desde 2020, aunque funciona bien sobre Django 5.2 y Python 3.14
 de `Storage`. Si el wrapper llegara a romperse, reemplazarlo por un backend
 propio sobre el SDK son unas cincuenta líneas y no obliga a tocar los modelos.
 
+## Despliegue en Railway
+
+El arranque está en el `Procfile`:
+
+```
+web: collectstatic --clear && USAR_BASE_DIRECTA=1 migrate && gunicorn config.wsgi
+```
+
+`collectstatic` corre en cada arranque, no solo en local, porque el
+almacenamiento de estáticos usa manifiesto: sin él, cada página falla con
+`Missing staticfiles manifest entry`. La migración usa el endpoint directo de
+Neon a través de `USAR_BASE_DIRECTA`; si `DIRECT_DATABASE_URL` no está puesta,
+degrada al endpoint normal en vez de impedir el arranque.
+
+`static/css/salida.css` **se versiona**. El build de Railway no corre Tailwind,
+así que la hoja compilada tiene que viajar en el repositorio. La contracara es
+que hay que acordarse de `npm run estilos` y commitear el resultado cuando se
+tocan plantillas o clases. El fuente vive en `assets/css/entrada.css`, fuera de
+`static/`, porque `collectstatic` no puede post-procesar un archivo con
+`@import "tailwindcss"` y falla el arranque entero si lo encuentra.
+
+`.python-version` pide Python 3.13, no el 3.14 que se usa en local: `gunicorn`
+26 declara soporte hasta 3.13 y Django 5.2 corre en ambos.
+
+### Variables a configurar en Railway
+
+| Variable | Nota |
+| --- | --- |
+| `DJANGO_SECRET_KEY` | Generar una nueva, distinta a la de desarrollo |
+| `DJANGO_DEBUG` | `False` |
+| `DATABASE_URL` | Neon, endpoint **con** `-pooler` |
+| `DIRECT_DATABASE_URL` | Neon, el mismo host **sin** `-pooler` |
+| `CLOUDINARY_URL` | Sin esta variable las fotos irían al disco efímero |
+| `STRIPE_PUBLISHABLE_KEY` | `pk_test_...` |
+| `STRIPE_SECRET_KEY` | `sk_test_...` |
+| `STRIPE_WEBHOOK_SECRET` | El del endpoint público, no el del `stripe listen` |
+| `STRIPE_MONEDA` | `cop` |
+
+`DJANGO_ALLOWED_HOSTS` y `DJANGO_CSRF_TRUSTED_ORIGINS` son opcionales: el
+dominio que Railway inyecta en `RAILWAY_PUBLIC_DOMAIN` se agrega solo a las
+dos. Hacen falta únicamente para un dominio propio.
+
+### Después del primer despliegue
+
+1. Crear el endpoint de webhook en el panel de Stripe apuntando a
+   `https://<dominio>/pagos/webhook/`, con el evento
+   `checkout.session.completed`. Copiar su `whsec_...` a
+   `STRIPE_WEBHOOK_SECRET` y **volver a desplegar**: las variables se leen al
+   importar los settings, cambiarlas no basta.
+2. Crear el superusuario con `python manage.py createsuperuser` desde la
+   consola del servicio.
+3. Opcional, una vez confirmado que el dominio sirve solo por HTTPS: activar
+   HSTS con `DJANGO_HSTS_SEGUNDOS`, subiendo por etapas (3600, después
+   31536000). Arranca apagado a propósito: el navegador recuerda la directiva
+   durante todo el plazo y no se puede deshacer desde el servidor.
+
 ## Variables de entorno
 
 Están todas en `.env.example`. Dos detalles que no son obvios:
