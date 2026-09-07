@@ -5,6 +5,31 @@ por categorías, carrito sin cuenta obligatoria y pago con Stripe Checkout.
 
 Stripe corre **en modo de prueba**. No se procesan pagos reales.
 
+## Demo
+
+https://artesanias-uraba.onrender.com
+
+Corre en el plan gratis de Render y se duerme tras 15 minutos sin
+tráfico,  la primera carga puede tardar cerca de un minuto.
+
+## Capturas
+
+[catálogo con filtro por categoría]
+<img width="1121" height="1073" alt="image" src="https://github.com/user-attachments/assets/31f9754e-5fb5-415e-a9ef-520694d80ca7" />
+
+
+[detalle de un producto]
+<img width="1133" height="987" alt="image" src="https://github.com/user-attachments/assets/b941e2c4-3208-4e4f-b75e-1d856de97dcb" />
+
+
+[checkout de Stripe]
+<img width="1001" height="963" alt="image" src="https://github.com/user-attachments/assets/4fc1b483-6466-4aed-aee8-76358d0212d0" />
+
+
+[confirmación de pedido]
+<img width="1171" height="983" alt="image" src="https://github.com/user-attachments/assets/a24b85b7-7b75-485b-8920-b714dff2e58f" />
+
+
 ## Stack
 
 - Django 5.2 LTS sobre Python 3.14
