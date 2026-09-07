@@ -1,0 +1,29 @@
+services:
+  - name: artesanias-uraba
+    type: web
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: ./build.sh
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60 --access-logfile - --error-logfile -
+    envVars:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: STRIPE_MONEDA
+        value: cop
+      # sync: false = Render las pide al crear el servicio y no quedan en el
+      # repositorio. Ninguna de estas puede vivir en git.
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_DATABASE_URL
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

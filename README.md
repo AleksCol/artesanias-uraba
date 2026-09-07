@@ -89,61 +89,69 @@ mantenimiento desde 2020, aunque funciona bien sobre Django 5.2 y Python 3.14
 de `Storage`. Si el wrapper llegara a romperse, reemplazarlo por un backend
 propio sobre el SDK son unas cincuenta líneas y no obliga a tocar los modelos.
 
-## Despliegue en Railway
+## Despliegue en Render
 
-El arranque está en el `Procfile`:
+Render no usa `Procfile`: separa el despliegue en **build** y **start**. Ambos
+están declarados en `render.yaml`, así que el servicio se crea como Blueprint
+y no hay que llenar campos a mano.
 
-```
-web: collectstatic --clear && USAR_BASE_DIRECTA=1 migrate && gunicorn config.wsgi
-```
+- **Build** (`./build.sh`): instala dependencias, corre `collectstatic` y
+  migra. Va acá y no en el arranque porque en Render el build produce el
+  sistema de archivos que después se ejecuta: no se repite en cada reinicio ni
+  se pisa entre instancias.
+- **Start**: `gunicorn config.wsgi:application --bind 0.0.0.0:$PORT`. Render
+  exige escuchar en `0.0.0.0` y define `PORT` (10000 por defecto).
 
-`collectstatic` corre en cada arranque, no solo en local, porque el
-almacenamiento de estáticos usa manifiesto: sin él, cada página falla con
-`Missing staticfiles manifest entry`. La migración usa el endpoint directo de
-Neon a través de `USAR_BASE_DIRECTA`; si `DIRECT_DATABASE_URL` no está puesta,
-degrada al endpoint normal en vez de impedir el arranque.
+`collectstatic` no es opcional: el almacenamiento de estáticos usa manifiesto y
+sin ese paso cada página responde 500 con `Missing staticfiles manifest entry`.
+Por lo mismo `static/css/salida.css` se versiona — el build de Render no corre
+Tailwind. Acordate de `npm run estilos` y commitear el resultado al tocar
+plantillas. El fuente vive en `assets/css/entrada.css`, fuera de `static/`,
+porque `collectstatic` no puede post-procesar un archivo con
+`@import "tailwindcss"` y aborta el build entero si lo encuentra.
 
-`static/css/salida.css` **se versiona**. El build de Railway no corre Tailwind,
-así que la hoja compilada tiene que viajar en el repositorio. La contracara es
-que hay que acordarse de `npm run estilos` y commitear el resultado cuando se
-tocan plantillas o clases. El fuente vive en `assets/css/entrada.css`, fuera de
-`static/`, porque `collectstatic` no puede post-procesar un archivo con
-`@import "tailwindcss"` y falla el arranque entero si lo encuentra.
+`.python-version` pide 3.13. Render toma ese archivo y hoy su default es
+3.14.3, pero `gunicorn` 26 declara soporte hasta 3.13 — y gunicorn es
+justamente lo único que no se puede probar en local desde Windows.
 
-`.python-version` pide Python 3.13, no el 3.14 que se usa en local: `gunicorn`
-26 declara soporte hasta 3.13 y Django 5.2 corre en ambos.
+### Variables a configurar
 
-### Variables a configurar en Railway
+Las declara `render.yaml` con `sync: false`, así que Render las pide al crear
+el servicio y ninguna queda en el repositorio.
 
 | Variable | Nota |
 | --- | --- |
 | `DJANGO_SECRET_KEY` | Generar una nueva, distinta a la de desarrollo |
-| `DJANGO_DEBUG` | `False` |
 | `DATABASE_URL` | Neon, endpoint **con** `-pooler` |
 | `DIRECT_DATABASE_URL` | Neon, el mismo host **sin** `-pooler` |
 | `CLOUDINARY_URL` | Sin esta variable las fotos irían al disco efímero |
 | `STRIPE_PUBLISHABLE_KEY` | `pk_test_...` |
 | `STRIPE_SECRET_KEY` | `sk_test_...` |
 | `STRIPE_WEBHOOK_SECRET` | El del endpoint público, no el del `stripe listen` |
-| `STRIPE_MONEDA` | `cop` |
 
+`DJANGO_DEBUG=False` y `STRIPE_MONEDA=cop` ya vienen con valor en el blueprint.
 `DJANGO_ALLOWED_HOSTS` y `DJANGO_CSRF_TRUSTED_ORIGINS` son opcionales: el
-dominio que Railway inyecta en `RAILWAY_PUBLIC_DOMAIN` se agrega solo a las
-dos. Hacen falta únicamente para un dominio propio.
+dominio de `RENDER_EXTERNAL_HOSTNAME` se agrega solo a las dos. Hacen falta
+únicamente para un dominio propio.
 
 ### Después del primer despliegue
 
-1. Crear el endpoint de webhook en el panel de Stripe apuntando a
+1. Crear el endpoint de webhook en Stripe apuntando a
    `https://<dominio>/pagos/webhook/`, con el evento
    `checkout.session.completed`. Copiar su `whsec_...` a
    `STRIPE_WEBHOOK_SECRET` y **volver a desplegar**: las variables se leen al
    importar los settings, cambiarlas no basta.
-2. Crear el superusuario con `python manage.py createsuperuser` desde la
-   consola del servicio.
-3. Opcional, una vez confirmado que el dominio sirve solo por HTTPS: activar
-   HSTS con `DJANGO_HSTS_SEGUNDOS`, subiendo por etapas (3600, después
-   31536000). Arranca apagado a propósito: el navegador recuerda la directiva
-   durante todo el plazo y no se puede deshacer desde el servidor.
+2. Crear el superusuario desde la shell del servicio.
+3. Opcional, con el HTTPS ya firme: activar HSTS con `DJANGO_HSTS_SEGUNDOS`,
+   subiendo por etapas (3600, después 31536000). Arranca apagado a propósito:
+   el navegador recuerda la directiva todo el plazo y no se deshace desde el
+   servidor.
+
+### Lo que trae el plan gratis
+
+El servicio se duerme tras 15 minutos sin tráfico y tarda cerca de un minuto en
+volver, mostrando una pantalla de carga. Para un portafolio significa que quien
+abra el enlace en frío espera ese minuto. Hay 750 horas de instancia por mes.
 
 ## Variables de entorno
 

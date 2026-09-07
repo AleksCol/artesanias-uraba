@@ -55,16 +55,20 @@ ALLOWED_HOSTS: list[str] = lista_de_variable(
 # Necesario para que el POST del checkout y del admin pasen detrás de HTTPS.
 CSRF_TRUSTED_ORIGINS: list[str] = lista_de_variable("DJANGO_CSRF_TRUSTED_ORIGINS")
 
-# Railway inyecta solo el dominio público del servicio. Se agrega acá para que
-# el primer despliegue responda sin configurar nada a mano; las dos variables
-# de arriba siguen mandando y son las que sirven para un dominio propio.
-DOMINIO_DE_RAILWAY = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
-if DOMINIO_DE_RAILWAY:
-    if DOMINIO_DE_RAILWAY not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(DOMINIO_DE_RAILWAY)
-    origen_de_railway = f"https://{DOMINIO_DE_RAILWAY}"
-    if origen_de_railway not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(origen_de_railway)
+# El proveedor inyecta solo el dominio público del servicio: Render lo llama
+# RENDER_EXTERNAL_HOSTNAME y Railway RAILWAY_PUBLIC_DOMAIN. Se agrega acá para
+# que el primer despliegue responda sin configurar nada a mano; las dos
+# variables de arriba siguen mandando y son las que sirven para un dominio
+# propio.
+for nombre_de_variable in ("RENDER_EXTERNAL_HOSTNAME", "RAILWAY_PUBLIC_DOMAIN"):
+    dominio_del_proveedor = os.environ.get(nombre_de_variable, "").strip()
+    if not dominio_del_proveedor:
+        continue
+    if dominio_del_proveedor not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(dominio_del_proveedor)
+    origen_del_proveedor = f"https://{dominio_del_proveedor}"
+    if origen_del_proveedor not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origen_del_proveedor)
 
 
 INSTALLED_APPS = [
