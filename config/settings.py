@@ -144,8 +144,22 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Dónde viven las fotos de producto.
+#
+# Con CLOUDINARY_URL definida, el ImageField sube a Cloudinary; sin ella, al
+# disco local. El disco local alcanza para desarrollo, pero no para producción:
+# en un host de sistema de archivos efímero las fotos se pierden en cada
+# despliegue. Los modelos no cambian: solo cambia el backend de almacenamiento.
+USAR_CLOUDINARY = bool(os.environ.get("CLOUDINARY_URL"))
+
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {
+        "BACKEND": (
+            "cloudinary_storage.storage.MediaCloudinaryStorage"
+            if USAR_CLOUDINARY
+            else "django.core.files.storage.FileSystemStorage"
+        )
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },

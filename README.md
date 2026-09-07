@@ -58,6 +58,31 @@ python manage.py runserver
 
 `static/css/salida.css` es un artefacto de compilación y no va al repositorio.
 
+## Fotos de producto
+
+`Producto.imagen` es un `ImageField` común. Dónde aterriza el archivo lo decide
+una sola variable:
+
+- **Con `CLOUDINARY_URL`**: sube a Cloudinary.
+- **Sin ella**: se guarda en `media/` del disco local.
+
+El disco local alcanza para desarrollo, pero no para producción: en un host de
+sistema de archivos efímero (Railway, entre otros) las fotos se pierden en cada
+despliegue. Los modelos, las plantillas y el admin no cambian entre un modo y
+el otro; solo cambia el backend en `STORAGES`.
+
+Para empujar a Cloudinary las fotos de un catálogo que ya existe:
+
+```bash
+python manage.py cargar_datos_de_ejemplo --refrescar-fotos
+```
+
+Una nota sobre la dependencia: `django-cloudinary-storage` está sin
+mantenimiento desde 2020, aunque funciona bien sobre Django 5.2 y Python 3.14
+(probado). El SDK oficial `cloudinary` sí está mantenido pero no trae backend
+de `Storage`. Si el wrapper llegara a romperse, reemplazarlo por un backend
+propio sobre el SDK son unas cincuenta líneas y no obliga a tocar los modelos.
+
 ## Variables de entorno
 
 Están todas en `.env.example`. Dos detalles que no son obvios:

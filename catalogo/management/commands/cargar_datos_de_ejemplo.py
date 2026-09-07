@@ -92,6 +92,15 @@ class Command(BaseCommand):
             action="store_true",
             help="No descarga imágenes (útil sin conexión).",
         )
+        parser.add_argument(
+            "--refrescar-fotos",
+            action="store_true",
+            help=(
+                "Vuelve a bajar y guardar las fotos aunque el producto ya tenga "
+                "una. Sirve para empujarlas al almacenamiento actual, por "
+                "ejemplo después de conectar Cloudinary."
+            ),
+        )
 
     def handle(self, *args: Any, **opciones: Any) -> None:
         if opciones["borrar_todo"]:
@@ -149,7 +158,9 @@ class Command(BaseCommand):
                 + ("" if creado else f" (se respetan precio y stock actuales: {producto.stock})")
             )
 
-            if opciones["sin_fotos"] or producto.imagen:
+            if opciones["sin_fotos"]:
+                continue
+            if producto.imagen and not opciones["refrescar_fotos"]:
                 continue
             try:
                 peticion = urllib.request.Request(
