@@ -172,6 +172,13 @@ class Command(BaseCommand):
             except Exception as error:  # noqa: BLE001 - una foto no debe tumbar la carga
                 self.stderr.write(f"  no se pudo bajar la foto de {nombre}: {error}")
                 continue
+            if producto.imagen:
+                # Cloudinary sube con nombre único (use_filename sin overwrite),
+                # así que sin este borrado cada refresco dejaría el archivo
+                # anterior huérfano, ocupando el plan gratis para siempre.
+                # Se borra después de bajar la nueva, no antes: si la descarga
+                # falla, el producto se queda con la foto que ya tenía.
+                producto.imagen.delete(save=False)
             producto.imagen.save(
                 f"{producto.slug}.jpg", ContentFile(contenido), save=True
             )

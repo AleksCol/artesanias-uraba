@@ -77,6 +77,12 @@ Para empujar a Cloudinary las fotos de un catálogo que ya existe:
 python manage.py cargar_datos_de_ejemplo --refrescar-fotos
 ```
 
+El comando borra la foto anterior antes de subir la nueva. Hace falta: el
+wrapper sube con `use_filename` pero sin `overwrite`, así que Cloudinary asigna
+un nombre único en cada subida y, sin ese borrado, cada refresco dejaría ocho
+archivos huérfanos ocupando el plan gratis para siempre. Verificado: dos
+refrescos seguidos dejan ocho archivos, no dieciséis.
+
 Una nota sobre la dependencia: `django-cloudinary-storage` está sin
 mantenimiento desde 2020, aunque funciona bien sobre Django 5.2 y Python 3.14
 (probado). El SDK oficial `cloudinary` sí está mantenido pero no trae backend
